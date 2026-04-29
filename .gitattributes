@@ -1,0 +1,28 @@
+# Default: normalize everything to LF
+* text=auto eol=lf
+
+# Gradle
+*.gradle text eol=lf
+*.gradle.kts text eol=lf
+gradlew text eol=lf
+*.properties text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Java/Kotlin
+*.java text eol=lf
+*.kt text eol=lf
+*.xml text eol=lf
+
+# Windows batch must stay CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binaries — never touch these
+*.jar binary
+*.class binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary
+*.gz binary
