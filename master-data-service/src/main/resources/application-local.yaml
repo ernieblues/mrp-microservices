@@ -1,0 +1,11 @@
+server:
+  port: ${MASTER_DATA_SERVICE_PORT}
+
+spring:
+  config:
+    import: optional:file:../.env[.properties]
+  
+  datasource:
+    url: ${MASTER_DATA_SERVICE_DB_URL}
+    username: ${POSTGRES_LOCAL_USER}
+    password: ${POSTGRES_LOCAL_PASSWORD}
