@@ -15,6 +15,7 @@ Material Requirements Planning (MRP) system built with Spring Boot microservices
 ## Services
 
 - master-data-service
+- purchase-requisition-service
 - user-service
 
 ## Local Development
@@ -31,6 +32,7 @@ Create the local PostgreSQL databases before starting the services:
 
 ```sql
 CREATE DATABASE mrp_master_data_service;
+CREATE DATABASE mrp_purchase_requisition_service;
 CREATE DATABASE mrp_user_service;
 ```
 

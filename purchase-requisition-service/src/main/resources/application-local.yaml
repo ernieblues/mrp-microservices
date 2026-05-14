@@ -1,0 +1,19 @@
+server:
+  port: ${PURCHASE_REQUISITION_SERVICE_PORT}
+
+spring:
+  config:
+    import: optional:file:../.env[.properties]
+  
+  datasource:
+    url: ${PURCHASE_REQUISITION_SERVICE_DB_URL}
+    username: ${POSTGRES_LOCAL_USER}
+    password: ${POSTGRES_LOCAL_PASSWORD}
+
+services:
+  master-data-service:
+    name: master-data-service
+    url: http://localhost:${MASTER_DATA_SERVICE_PORT}
+  user-service:
+    name: user-service
+    url: http://localhost:${USER_SERVICE_PORT}
