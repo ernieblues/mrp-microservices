@@ -1,0 +1,9 @@
+name: master-data-service
+
+image:
+  repository: master-data-service
+
+spring:
+  datasource:
+    database: mrp_master_data_service
+    url: jdbc:postgresql://postgres:5432/mrp_master_data_service

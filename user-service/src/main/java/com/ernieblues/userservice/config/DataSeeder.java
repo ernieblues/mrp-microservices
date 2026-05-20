@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.List;
 
 @Configuration
-@Profile({"local"})
+@Profile({"local", "k8s"})
 public class DataSeeder {
 
     @Bean

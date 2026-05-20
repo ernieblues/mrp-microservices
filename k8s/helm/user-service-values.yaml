@@ -1,0 +1,9 @@
+name: user-service
+
+image:
+  repository: user-service
+
+spring:
+  datasource:
+    database: mrp_user_service
+    url: jdbc:postgresql://postgres:5432/mrp_user_service

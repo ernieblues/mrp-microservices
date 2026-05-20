@@ -1,0 +1,15 @@
+name: ""
+
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: latest
+  pullPolicy: Always
+
+spring:
+  profile: k8s
+
+service:
+  type: ClusterIP
+  port: 8080

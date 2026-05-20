@@ -1,0 +1,158 @@
+version: '3'
+silent: true
+
+tasks:
+
+  # ─── Default ────────────────────────────────────────────────────────────────
+
+  default:
+    cmds:
+      - task: build
+      - task: deploy
+
+  # ─── Build ──────────────────────────────────────────────────────────────────
+
+  build:
+    cmds:
+      - task: build-master-data-service
+      - task: build-purchase-requisition-service
+      - task: build-user-service
+
+  build-master-data-service:
+    dir: ./master-data-service
+    cmds:
+      - echo ""
+      - echo "Building master-data-service..."
+      - bash -c "./gradlew build -x test"
+      - docker build --no-cache -t master-data-service:latest .
+
+  build-purchase-requisition-service:
+    dir: ./purchase-requisition-service
+    cmds:
+      - echo ""
+      - echo "Building purchase-requisition-service..."
+      - bash -c "./gradlew build -x test"
+      - docker build --no-cache -t purchase-requisition-service:latest .
+
+  build-user-service:
+    dir: ./user-service
+    cmds:
+      - echo ""
+      - echo "Building user-service..."
+      - bash -c "./gradlew build -x test"
+      - docker build --no-cache -t user-service:latest .
+
+  # ─── Deploy ─────────────────────────────────────────────────────────────────
+
+  deploy:
+    preconditions:
+      - sh: helm version
+        msg: "helm is not installed or not on PATH"
+      - sh: kubectl cluster-info
+        msg: "kubectl cannot reach a cluster"
+    cmds:
+      - task: kill-forwards
+      - task: deploy-postgres
+      - task: wait-postgres
+      - task: deploy-services
+      - task: wait-services
+      - task: port-forward
+      - task: wait-forwards
+      - task: print-endpoints
+
+  deploy-postgres:
+    cmds:
+      - echo ""
+      - echo "Deploying postgres secret..."
+      - kubectl apply -f ./k8s/postgres-secret.yaml
+      - echo ""
+      - echo "Deploying postgres..."
+      - helm upgrade --install postgres ./k8s/helm/postgres-chart
+
+  deploy-services:
+    cmds:
+      - echo ""
+      - echo "Deploying services..."
+      - helm upgrade --install master-data-service ./k8s/helm/mrp-service-chart -f ./k8s/helm/master-data-service-values.yaml
+      - helm upgrade --install purchase-requisition-service ./k8s/helm/mrp-service-chart -f ./k8s/helm/purchase-requisition-service-values.yaml
+      - helm upgrade --install user-service ./k8s/helm/mrp-service-chart -f ./k8s/helm/user-service-values.yaml
+
+  # ─── Wait ───────────────────────────────────────────────────────────────────
+
+  wait-postgres:
+    cmds:
+      - echo ""
+      - echo "Waiting for postgres to be ready..."
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres --timeout=300s
+
+  wait-services:
+    cmds:
+      - echo ""
+      - echo "Waiting for services to be ready..."
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=master-data-service --timeout=300s
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=purchase-requisition-service --timeout=300s
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=user-service --timeout=300s
+
+  # ─── Port Forwarding ────────────────────────────────────────────────────────
+
+  port-forward:
+    cmds:
+      - echo ""
+      - echo "Forwarding local ports..."
+      - bash -c "kubectl port-forward deployment/master-data-service 8081:8080 &"
+      - bash -c "kubectl port-forward deployment/purchase-requisition-service 8082:8080 &"
+      - bash -c "kubectl port-forward deployment/user-service 8083:8080 &"
+
+  kill-forwards:
+    cmds:
+      - echo ""
+      - echo "Cleaning up existing port forwards..."
+      - bash -c "taskkill //F //IM kubectl.exe 2>/dev/null || true"
+
+  wait-forwards:
+    cmds:
+      - echo ""
+      - echo "Waiting for local port forwards..."
+      - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8081 2>/dev/null; do sleep 1; done"'
+      - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8082 2>/dev/null; do sleep 1; done"'
+      - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8083 2>/dev/null; do sleep 1; done"'
+
+  # ─── Info ───────────────────────────────────────────────────────────────────
+
+  print-endpoints:
+    cmds:
+      - echo ""
+      - echo "======================================="
+      - echo " MRP Microservices Deployment Complete"
+      - echo "======================================="
+      - echo ""
+      - echo "Swagger Endpoints"
+      - echo "-----------------"
+      - 'echo "Master Data Service:          http://localhost:8081/swagger-ui/index.html"'
+      - 'echo "Purchase Requisition Service: http://localhost:8082/swagger-ui/index.html"'
+      - 'echo "User Service:                 http://localhost:8083/swagger-ui/index.html"'
+      - echo ""
+
+  # ─── Status ─────────────────────────────────────────────────────────────────
+
+  status:
+    cmds:
+      - echo ""
+      - kubectl get pods
+
+  # ─── Clean ──────────────────────────────────────────────────────────────────
+
+  clean:
+    cmds:
+      - task: kill-forwards
+      - echo ""
+      - echo "Tearing down all services..."
+      - cmd: helm uninstall master-data-service
+        ignore_error: true
+      - cmd: helm uninstall purchase-requisition-service
+        ignore_error: true
+      - cmd: helm uninstall user-service
+        ignore_error: true
+      - cmd: helm uninstall postgres
+        ignore_error: true
+      - echo "Done."

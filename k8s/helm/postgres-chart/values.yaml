@@ -1,0 +1,16 @@
+image:
+  repository: postgres
+  tag: latest
+  pullPolicy: IfNotPresent
+
+storage:
+  size: 1Gi
+
+service:
+  type: ClusterIP
+  port: 5432
+
+secret:
+  name: postgres-secret
+
+pgdata: /var/lib/postgresql/data/pgdata

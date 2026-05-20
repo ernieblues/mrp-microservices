@@ -1,0 +1,9 @@
+name: purchase-requisition-service
+
+image:
+  repository: purchase-requisition-service
+
+spring:
+  datasource:
+    database: mrp_purchase_requisition_service
+    url: jdbc:postgresql://postgres:5432/mrp_purchase_requisition_service
