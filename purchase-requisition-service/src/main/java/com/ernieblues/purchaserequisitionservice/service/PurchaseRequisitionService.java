@@ -1,11 +1,16 @@
 package com.ernieblues.purchaserequisitionservice.service;
 
+import com.ernieblues.purchaserequisitionservice.client.MasterDataClient;
+import com.ernieblues.purchaserequisitionservice.client.UserClient;
+import com.ernieblues.purchaserequisitionservice.dto.CostCenterDto;
 import com.ernieblues.purchaserequisitionservice.dto.PurchaseRequisitionApprovalDto;
 import com.ernieblues.purchaserequisitionservice.dto.PurchaseRequisitionCreateDto;
 import com.ernieblues.purchaserequisitionservice.dto.PurchaseRequisitionDetailDto;
 import com.ernieblues.purchaserequisitionservice.dto.PurchaseRequisitionDto;
 import com.ernieblues.purchaserequisitionservice.dto.PurchaseRequisitionItemDto;
 import com.ernieblues.purchaserequisitionservice.dto.PurchaseRequisitionUpdateDto;
+import com.ernieblues.purchaserequisitionservice.dto.UserDto;
+import com.ernieblues.purchaserequisitionservice.dto.VendorDto;
 import com.ernieblues.purchaserequisitionservice.entity.PurchaseRequisition;
 import com.ernieblues.purchaserequisitionservice.entity.PurchaseRequisitionApproval;
 import com.ernieblues.purchaserequisitionservice.entity.PurchaseRequisitionItem;
@@ -25,6 +30,8 @@ import java.util.List;
 public class PurchaseRequisitionService {
 
     private final PurchaseRequisitionRepository purchaseRequisitionRepository;
+    private final UserClient userClient;
+    private final MasterDataClient masterDataClient;
 
     // --------------------------------------------------
     //                       CREATE
@@ -84,7 +91,25 @@ public class PurchaseRequisitionService {
                 .sorted(Comparator.comparing(
                                 PurchaseRequisition::getDateRequested)
                         .reversed())
-                .map(PurchaseRequisitionService::mapToDetailDto)
+                .map(requisition -> {
+                    UserDto user =
+                            userClient.getById(
+                                    requisition.getRequestedById());
+
+                    CostCenterDto costCenter =
+                            masterDataClient.getCostCenterById(
+                                    requisition.getCostCenterId());
+
+                    VendorDto vendor =
+                            masterDataClient.getVendorById(
+                                    requisition.getVendorId());
+
+                    return mapToDetailDto(
+                            requisition,
+                            user,
+                            costCenter,
+                            vendor);
+                })
                 .toList();
     }
 
@@ -92,7 +117,23 @@ public class PurchaseRequisitionService {
     public PurchaseRequisitionDetailDto getById(Long id) {
         PurchaseRequisition requisition = findByIdOrThrow(id);
 
-        return mapToDetailDto(requisition);
+        UserDto user =
+                userClient.getById(
+                        requisition.getRequestedById());
+
+        CostCenterDto costCenter =
+                masterDataClient.getCostCenterById(
+                        requisition.getCostCenterId());
+
+        VendorDto vendor =
+                masterDataClient.getVendorById(
+                        requisition.getVendorId());
+
+        return mapToDetailDto(
+                requisition,
+                user,
+                costCenter,
+                vendor);
     }
 
     // --------------------------------------------------
@@ -152,12 +193,20 @@ public class PurchaseRequisitionService {
         );
     }
 
-    private static PurchaseRequisitionDetailDto mapToDetailDto(PurchaseRequisition pr) {
+    private static PurchaseRequisitionDetailDto mapToDetailDto(
+            PurchaseRequisition pr,
+            UserDto user,
+            CostCenterDto costCenter,
+            VendorDto vendor) {
+
         return new PurchaseRequisitionDetailDto(
                 pr.getId(),
                 pr.getPurchaseRequisitionNumber(),
                 pr.getDateRequested(),
                 pr.getDateRequired(),
+                user,
+                costCenter,
+                vendor,
                 pr.getComments(),
                 pr.getTotalCost(),
                 pr.getStatus(),
