@@ -1,0 +1,44 @@
+{
+  "realm" : "mrp",
+  "displayName" : "MRP System",
+  "enabled" : true,
+  "sslRequired" : "external",
+  "registrationAllowed" : false,
+  "loginWithEmailAllowed" : true,
+  "duplicateEmailsAllowed" : false,
+  "resetPasswordAllowed" : true,
+  "editUsernameAllowed" : false,
+  "bruteForceProtected" : true,
+  "loginTheme" : "mrp",
+  "accountTheme" : "keycloak",
+  "adminTheme" : "keycloak.v2",
+  "emailTheme" : "keycloak",
+  "roles" : {
+    "realm" : [
+      {
+        "name" : "mrp-user",
+        "description" : "system user"
+      },
+      {
+        "name" : "mrp-admin",
+        "description" : "system administrator"
+      }
+    ]
+  },
+  "clients" : [
+    {
+      "clientId" : "mrp-frontend",
+      "name" : "MRP Frontend",
+      "enabled" : true,
+      "publicClient" : true,
+      "standardFlowEnabled" : true,
+      "directAccessGrantsEnabled" : false,
+      "redirectUris" : [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins" : [
+        "http://localhost:3000"
+      ]
+    }
+  ]
+}

@@ -13,6 +13,6 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
-    command: ["start-dev"]
+    command: ["start-dev", "--import-realm"]
     volumes:
       - ./keycloak/data/export:/opt/keycloak/data/export
