@@ -17,6 +17,13 @@ tasks:
       - task: build-master-data-service
       - task: build-purchase-requisition-service
       - task: build-user-service
+      - task: build-keycloak
+
+  build-keycloak:
+    cmds:
+      - echo ""
+      - echo "Building keycloak..."
+      - docker build --no-cache -t mrp-keycloak:latest ./keycloak
 
   build-master-data-service:
     dir: ./master-data-service
@@ -54,6 +61,8 @@ tasks:
       - task: kill-forwards
       - task: deploy-postgres
       - task: wait-postgres
+      - task: deploy-keycloak
+      - task: wait-keycloak
       - task: deploy-services
       - task: wait-services
       - task: port-forward
@@ -68,6 +77,15 @@ tasks:
       - echo ""
       - echo "Deploying postgres..."
       - helm upgrade --install postgres ./k8s/helm/postgres-chart
+
+  deploy-keycloak:
+    cmds:
+      - echo ""
+      - echo "Deploying keycloak secret..."
+      - kubectl apply -f ./k8s/keycloak-secret.yaml
+      - echo ""
+      - echo "Deploying keycloak..."
+      - helm upgrade --install keycloak ./k8s/helm/keycloak-chart
 
   deploy-services:
     cmds:
@@ -85,6 +103,12 @@ tasks:
       - echo "Waiting for postgres to be ready..."
       - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres --timeout=300s
 
+  wait-keycloak:
+    cmds:
+      - echo ""
+      - echo "Waiting for keycloak to be ready..."
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=keycloak --timeout=300s
+
   wait-services:
     cmds:
       - echo ""
@@ -99,6 +123,7 @@ tasks:
     cmds:
       - echo ""
       - echo "Forwarding local ports..."
+      - bash -c "kubectl port-forward deployment/keycloak 8080:8080 &"
       - bash -c "kubectl port-forward deployment/master-data-service 8081:8080 &"
       - bash -c "kubectl port-forward deployment/purchase-requisition-service 8082:8080 &"
       - bash -c "kubectl port-forward deployment/user-service 8083:8080 &"
@@ -113,6 +138,7 @@ tasks:
     cmds:
       - echo ""
       - echo "Waiting for local port forwards..."
+      - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8080 2>/dev/null; do sleep 1; done"'
       - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8081 2>/dev/null; do sleep 1; done"'
       - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8082 2>/dev/null; do sleep 1; done"'
       - bash -c 'timeout 30 bash -c "until echo > /dev/tcp/localhost/8083 2>/dev/null; do sleep 1; done"'
@@ -125,6 +151,8 @@ tasks:
       - echo "======================================="
       - echo " MRP Microservices Deployment Complete"
       - echo "======================================="
+      - echo ""
+      - 'echo "Keycloak Admin Console:       http://localhost:8080/admin"'
       - echo ""
       - echo "Swagger Endpoints"
       - echo "-----------------"
@@ -152,6 +180,8 @@ tasks:
       - cmd: helm uninstall purchase-requisition-service
         ignore_error: true
       - cmd: helm uninstall user-service
+        ignore_error: true
+      - cmd: helm uninstall keycloak
         ignore_error: true
       - cmd: helm uninstall postgres
         ignore_error: true

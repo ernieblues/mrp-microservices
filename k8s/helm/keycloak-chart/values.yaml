@@ -1,0 +1,19 @@
+replicaCount: 1
+
+image:
+  repository: mrp-keycloak
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8080
+
+keycloak:
+  db:
+    host: postgres
+    port: 5432
+    database: keycloak
+  realm:
+    importDir: /opt/keycloak/data/import
+  theme: mrp

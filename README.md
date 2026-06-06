@@ -10,6 +10,7 @@ This project is being actively developed as a portfolio application to demonstra
 - Spring Boot
 - Gradle (Kotlin DSL)
 - PostgreSQL
+- Keycloak
 - React TypeScript
 - Docker
 - Kubernetes
@@ -85,6 +86,20 @@ stringData:
   POSTGRES_PASSWORD: your_password
 ```
 
+### Keycloak Secret
+
+Copy the example secret file:
+
+`cp k8s/keycloak-secret.example.yaml k8s/keycloak-secret.yaml`
+
+Update the secret values inside `k8s/keycloak-secret.yaml`.
+
+```yaml
+stringData:
+  KEYCLOAK_ADMIN: your_admin_username
+  KEYCLOAK_ADMIN_PASSWORD: your_admin_password
+```
+
 ## Task Commands
 
 Run commands from Git Bash at the repository root.
@@ -103,6 +118,7 @@ After deployment, the following endpoints are available locally:
 
 | Component | Endpoint |
 |---|---|
+| Keycloak Admin Console | [http://localhost:8080/admin](http://localhost:8080/admin) |
 | master-data-service Swagger UI | [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html) |
 | purchase-requisition-service Swagger UI | [http://localhost:8082/swagger-ui/index.html](http://localhost:8082/swagger-ui/index.html) |
 | user-service Swagger UI | [http://localhost:8083/swagger-ui/index.html](http://localhost:8083/swagger-ui/index.html) |
